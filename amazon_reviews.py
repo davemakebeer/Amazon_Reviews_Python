@@ -1,9 +1,78 @@
+"""
+Amazon Product Reviews Processing
+
+This program performs the following tasks:
+1. Opens a CSV file containing Amazon product reviews.
+2. Adds and populates two columns with polarity values and textual
+    descriptions.
+3. Saves the processed data as a new CSV file.
+
+Dependencies:
+- os
+- spacy
+- pandas
+- textblob
+
+Functions:
+1. `load_nlp_model(model_name: str) -> spacy.language.Language`:
+    Loads a spaCy language model.
+
+2. `read_df(file_name: str) -> pd.DataFrame`:
+    Reads a CSV/TXT file into a Pandas DataFrame. Includes error handling for
+    FileNotFoundError, EmptyDataError, and ParserError.
+
+3. `drop_null_rows(df: pd.DataFrame, column_name: str) -> pd.DataFrame`:
+    Drops DataFrame rows containing null values in a chosen column.
+    Includes error handling to ensure a valid column name.
+
+4. `filter_and_lemmatize(nlp_model: str, input_text: str) -> str`:
+    Takes a sentence and returns cleaned lemmas.
+    Converts a string to an NLP object using the loaded language model,
+    tokenizes, lemmatizes, and filters text.
+
+5. `polarity_description(polarity_value: float) -> str`:
+    Assigns a textual score to the polarity value.
+
+6. `lemmatize_text_and_add_polarity_column(
+    df: pd.DataFrame, target_column: str, new_column: str, nlp_model: str
+    ) -> pd.DataFrame`:
+        Creates and populates a new column with polarity values.
+        Cleans and lemmatizes text from a chosen (target) column, calculates
+        polarity value to 3 decimals using TextBlob, and assigns values to a
+        new column.
+
+7. `add_polarity_description_column(
+    df: pd.DataFrame, target_column: str, new_column: str
+    ) -> pd.DataFrame`:
+        Creates and populates a new column with textual polarity descriptions.
+
+8. `save_new_csv(df: pd.DataFrame, new_file_name: str)`:
+    Saves DataFrame to a new CSV file.
+    Includes error handling for file replacement, PermissionError,
+    IsADirectoryError, EmptyDataError, and ParserError.
+
+9. `main()`: The main program that orchestrates the entire process.
+
+Constants:
+- `language_model`: The spaCy language model name.
+- `raw_dataset`: The filename of the raw Amazon product reviews dataset.
+- `column_for_processing`: The target column in the dataset for processing.
+- `new_column_1`: The name of the first new column containing polarity values.
+- `new_column_2`: The name of the second new column containing textual
+    descriptions.
+- `output_csv_file_name`: The filename for the processed dataset.
+
+Execution:
+Run the main program by executing the script. Ensure that the required
+dependencies are installed.
+"""
+
 import os
 import spacy
 import pandas as pd
 from textblob import TextBlob
 
-def load_nlp_model(model_name) -> spacy.language.Language:
+def load_nlp_model(model_name: str) -> spacy.language.Language:
     """
     Loads a spaCy language model.
 
@@ -12,25 +81,17 @@ def load_nlp_model(model_name) -> spacy.language.Language:
 
     Returns:
     - spacy.language.Language: The chosen spaCy language model.
-
-    Example:
-    >>> nlp = load_nlp_model('en_core_web_sm')
-    >>> doc = nlp('This is an example sentence.')
-    >>> for token in doc:
-    ...     print(token.text, token.pos_)
-    This DET
-    is AUX
-    an DET
-    example NOUN
-    sentence NOUN
-    . PUNCT
     """
     return spacy.load(model_name)
 
 def read_df(file_name: str) -> pd.DataFrame:
     """
     Reads CSV/TXT file into a Pandas DataFrame.
-    Includes error handling.
+
+    Includes error handling for:
+    - FileNotFoundError
+    - EmptyDataError
+    - ParserError
 
     Parameters:
     - file_name (str): A string comprising the CSV/TXT filename.
@@ -63,17 +124,18 @@ def read_df(file_name: str) -> pd.DataFrame:
             "CSV/TXT file."
         ) from exc
 
-def drop_null_rows(df: pd.DataFrame, column_name: str):
+def drop_null_rows(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     """
     Drops DataFrame rows containing null values in chosen column.
-    Includes error handling to ensure column name is valid.
+
+    Includes error handling to ensure valid column name.
 
     Parameters:
-    - df (str): The name of the DataFrame to be processed.
-    - column_name (str): The column from which the nulls are to be found.
+    - df (pd.DataFrame): The name of the DataFrame to be processed.
+    - column_name (str): The column from which the nulls are to be dropped.
 
     Returns:
-    - None.
+    - df (pd.DataFrame): The processed DataFrame.
     """
     while True:
         try:
@@ -94,7 +156,7 @@ def drop_null_rows(df: pd.DataFrame, column_name: str):
 
 def filter_and_lemmatize(nlp_model: str, input_text: str) -> str:
     """
-    Takes a sentence and returns newed lemmas.
+    Takes a sentence and returns cleaned lemmas.
 
     Converts string to an NLP object using the loaded language model.
     Tokenizes, lemmatizes and filters text to produce a new list of relevant
@@ -103,10 +165,10 @@ def filter_and_lemmatize(nlp_model: str, input_text: str) -> str:
 
     Parameters:
     - nlp_model (str): The loaded language model.
-    - input_text (str): A string comprising review text to be processed.
+    - input_text (str): A string comprising text to be processed.
 
     Returns:
-    - str: A string comprised of newed lemmas.
+    - str: A string comprised of cleaned lemmas.
     """
     # Make text an nlp object using the small model
     sentence = nlp_model(input_text)
@@ -123,7 +185,6 @@ def filter_and_lemmatize(nlp_model: str, input_text: str) -> str:
 def polarity_description(polarity_value: float) -> str:
     """
     Assigns a textual score to the polarity value.
-    This gives the user a clear idea of the model's prediction of sentiment.
 
     Parameters:
     - polarity_value (float): A float between -1.000 and 1.000.
@@ -154,20 +215,21 @@ def lemmatize_text_and_add_polarity_column(
     """
     Creates and populates a new column with polarity values.
 
-    news and lemmatizes text from a chosen (target) column.
-    Calculates polarity value using TextBlob.
+    Cleans and lemmatizes text from a chosen (target) column.
+    Calculates polarity value to 3 decimals using TextBlob.
     Assigns values to a new column.
 
     Parameters:
-    - df (str): The DataFrame for processing.
+    - df (pd.DataFrame): The DataFrame for processing.
     - target_column (str): The column to be processed and analysed.
     - new_column (str): The name to be assigned to the new column.
+    - nlp_model (str): The chosen spaCy language model.
 
     Calls:
-    - filter_and_lemmatize: Takes a sentence and returns newed lemmas.
+    - filter_and_lemmatize: Takes a sentence and returns cleaned lemmas.
     
     Returns:
-    - new_df (pd.DataFrame): The DataFrame with new populated column.
+    - new_df (pd.DataFrame): The DataFrame with a new populated column.
     """
     # Filter and lemmatize the text in the target_column
     lemmas = (
@@ -175,8 +237,10 @@ def lemmatize_text_and_add_polarity_column(
         .apply(lambda x: filter_and_lemmatize(nlp_model, x))
     )
 
-    # Calculate polarity for each row using TextBlob
-    polarity_scores = lemmas.apply(lambda x: TextBlob(x).sentiment.polarity)
+    # Calculate polarity to 3 decimals for each row using TextBlob
+    polarity_scores = (
+        lemmas.apply(lambda x: round(TextBlob(x).sentiment.polarity, 3))
+    )
 
     # Assign the calculated polarity scores to a new column
     new_df = df.assign(**{new_column: polarity_scores})
@@ -187,10 +251,10 @@ def add_polarity_description_column(
         df: pd.DataFrame, target_column: str, new_column: str
     ) -> pd.DataFrame:
     """
-    Creates and populates a new column with polarity descriptions.
+    Creates and populates a new column with textual polarity descriptions.
 
     Parameters:
-    - df (str): The DataFrame for processing.
+    - df (pd.DataFrame): The DataFrame for processing.
     - target_column (str): The column to be processed and analysed.
     - new_column (str): The name to be assigned to the new column.
 
@@ -198,7 +262,7 @@ def add_polarity_description_column(
     - polarity_description: Assigns a textual score to the polarity value.
     
     Returns:
-    - new_df (pd.DataFrame): The DataFrame with new populated column.
+    - new_df (pd.DataFrame): The DataFrame with a new populated column.
     """
     # Calculate polarity description for each row
     description = df[target_column].apply(polarity_description)
@@ -212,9 +276,16 @@ def save_new_csv(df: pd.DataFrame, new_file_name: str):
     """
     Saves DataFrame to new CSV file.
 
+    Includes error handling for:
+    - File already existing with user choice to replace.
+    - PermissionError
+    - IsADirectoryError
+    - EmptyDataError
+    - ParserError
+
     Parameters:
-    - df (str): The DataFrame to be saved.
-    - new_file_name (str): The chosen file name.
+    - df (pd.DataFrame): The DataFrame to be saved.
+    - new_file_name (str): The assigned file name.
 
     Returns:
     - None.
@@ -255,7 +326,7 @@ def save_new_csv(df: pd.DataFrame, new_file_name: str):
 def main():
     """
     Program opens a CSV file, adds and populates two columns with polarity
-    value as float and a textual desciption, and saves a new CSV file.
+    value as float and a textual desciption, saves as a new CSV file.
     """
     # Constants
     language_model = 'en_core_web_sm'
@@ -263,7 +334,7 @@ def main():
     column_for_processing = 'reviews.text'
     new_column_1 = 'polarity.values'
     new_column_2 = 'polarity.description'
-    output_csv_filename = 'processed_amazon_product_reviews.csv'
+    output_csv_file_name = 'processed_amazon_product_reviews.csv'
 
     # Load suitable NLP model
     nlp = load_nlp_model(language_model)
@@ -285,7 +356,7 @@ def main():
     )
 
     # Save process output as new CSV file)
-    save_new_csv(new_df, output_csv_filename)
+    save_new_csv(new_df, output_csv_file_name)
 
 # Run main program
 if __name__ == "__main__":
