@@ -17,8 +17,8 @@ The project consists of the following components:
 
 2. **Jupyter Notebook for Data Analysis (`amazon_reviews_analysis.ipynb`):**
    - A Jupyter Notebook dedicated to data analysis using the processed dataset.
-   - Utilizes Pandas, Matplotlib, and Seaborn for exploratory data analysis.
-   - Provides visualizations, statistical insights, and documentation of trends and patterns in the Amazon product reviews data.
+   - Utilises Pandas, Matplotlib, and Seaborn for exploratory data analysis.
+   - Provides visualisations, statistical insights, and documentation of trends and patterns in the Amazon product reviews data.
 
 ## Dependencies
 
